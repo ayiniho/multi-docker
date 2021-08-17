@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ayiniho/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true ayiniho/react-test npm test
+
+after_success:
+  - docker build -t ayiniho/multi-client ./client
+  - docker build -t ayiniho/multi-nginx ./nginx
+  - docker build -t ayiniho/multi-server ./server
+  - docker build -t ayiniho/multi-worker ./worker
+#log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# push those images to docker hub
+  - docker push ayiniho/multi-client
+  - docker push ayiniho/multi-nginx
+  - docker push ayiniho/multi-server
+  - docker push ayiniho/multi-worker
